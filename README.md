@@ -4,7 +4,7 @@ Traduce archivos de subtítulos **.srt** y **.vtt** con inteligencia artificial:
 
 ## Cómo se usa
 
-1. Abre la página (en la web publicada, o en local con `Iniciar.command`).
+1. Abre la página: la [versión web](https://davidarribas.github.io/traductor-de-subtitulos/), o en local `index.html` o `Iniciar.command`.
 2. Pulsa **🔑 Claves de API** y pega la clave del proveedor que vayas a usar.
 3. Arrastra el archivo de subtítulos. La app detecta el idioma y propone el destino: si está en inglés, lo traduce al español; si está en otro idioma, al inglés. Para el chino simplificado hay un botón directo.
 4. Opcional, pero mejora mucho el resultado: describe el vídeo en **Sobre el vídeo** y rellena el **Glosario** (hay uno de ejemplo para wargames).
@@ -50,9 +50,9 @@ Haz doble clic en `Iniciar.command`. Arranca un pequeño servidor en `http://loc
 
 También funciona abriendo `index.html` directamente.
 
-## Publicarla para que la use otra gente
+## Versión web
 
-Es una web estática: vale cualquier alojamiento gratuito (Netlify, GitHub Pages, Cloudflare Pages). Cada persona usa su propia clave, que se queda en su navegador, así que a ti no te cuesta nada. Las claves y los subtítulos van directamente del navegador al proveedor elegido.
+La app está publicada con GitHub Pages en **https://davidarribas.github.io/traductor-de-subtitulos/** y se actualiza sola cada vez que se suben cambios a la rama `master`. Cada persona usa su propia clave, que se guarda en su navegador; las claves y los subtítulos van directamente del navegador al proveedor elegido.
 
 ## Privacidad
 
