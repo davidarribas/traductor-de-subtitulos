@@ -1,0 +1,12 @@
+[build]
+  publish = "."
+  command = ""
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# Redirect all requests to index.html (for SPAs, optional)
+#[[redirects]]
+#  from = "/*"
+#  to = "/index.html"
+#  status = 200

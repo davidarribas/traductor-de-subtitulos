@@ -1,312 +1,251 @@
 <!DOCTYPE html>
-<html lang="hu">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SRT Felirat Fordító</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Traductor de subtítulos</title>
+  <meta name="description" content="Traduce subtítulos .srt y .vtt con IA (Claude, Gemini, GPT, DeepSeek o un modelo local). Gratis, en tu navegador y con tu propia clave.">
+  <meta name="theme-color" content="#b84d1b">
+  <meta property="og:title" content="Traductor de subtítulos">
+  <meta property="og:description" content="Traduce subtítulos .srt y .vtt con IA, en tu navegador y con tu propia clave.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23b84d1b'/><rect x='12' y='34' width='40' height='6' rx='3' fill='white'/><rect x='18' y='44' width='28' height='6' rx='3' fill='white' opacity='.75'/></svg>">
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-dark text-light">
-    <div class="container py-4">
-        <header class="pb-3 mb-4 border-bottom border-secondary">
-            <div class="d-flex justify-content-between align-items-center">
-                <h1 class="display-5 fw-bold text-primary"><i class="bi bi-translate me-2"></i>SRT Felirat Fordító <small class="fs-6 text-secondary">version 1.92</small></h1>
-                
-                <!-- Nyelvválasztó gomb -->
-                <div class="dropdown">
-                    <button class="btn btn-outline-light dropdown-toggle" type="button" id="languageSelector" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-globe me-2"></i><span id="currentUiLanguage">English</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" id="uiLanguageMenu" aria-labelledby="languageSelector">
-                        <li><a class="dropdown-item active" href="#" data-lang="en">English</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="hu">Magyar</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="de">Deutsch</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="es">Español</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="fr">Français</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="it">Italiano</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="pt_PT">Português (Portugal)</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="pt_BR">Português (Brasil)</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="nl">Nederlands</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="pl">Polski</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="ru">Русский</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="ja">日本語</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="zh">中文</a></li>
-                            <li><a class="dropdown-item" href="#" data-lang="zh_tw">中文 (台灣)</a></li>
-                            <li><a class="dropdown-item" href="#" data-lang="zh_hk">中文 (香港)</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="ar">العربية</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="hi">हिन्दी</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="ko">한국어</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="tr">Türkçe</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="sv">Svenska</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="da">Dansk</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="fi">Suomi</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="no">Norsk</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="cs">Čeština</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="sk">Slovenčina</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="ro">Română</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="bg">Български</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="el">Ελληνικά</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="uk">Українська</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="he">עברית</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="th">ไทย</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="vi">Tiếng Việt</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="id">Bahasa Indonesia</a></li>
-                    </ul>
-                </div>
-            </div>
-        </header>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="logo" aria-hidden="true"></span>
+    <h1>Traductor de subtítulos <span id="ver" class="ver"></span></h1>
+  </div>
+  <nav class="topnav">
+    <button class="btn ghost" id="openHelp">Ayuda</button>
+    <button class="btn ghost" id="openKeys"><span aria-hidden="true">🔑</span> Claves de API</button>
+  </nav>
+</header>
 
-        <div class="row g-4">
-            <div class="col-md-12">
-                <div class="card bg-dark-subtle text-light border-secondary">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Feliratfájl betöltése</h5>
-                        <div class="mb-3">
-                            <input class="form-control form-control-lg bg-dark text-light border-secondary" type="file" id="srtFile" accept=".srt,.wrk,.mmm">
-                        </div>
-                        <div id="fileInfo" class="text-info mb-3 d-none">
-                            <span id="fileName"></span> - <span id="lineCount"></span> sor
-                        </div>
-                    </div>
-                </div>
-            </div>
+<main>
+  <!-- Bienvenida (solo en la primera visita) -->
+  <section class="card welcome" id="welcome" hidden>
+    <button class="icon close" id="welcomeClose" aria-label="Cerrar la bienvenida">✕</button>
+    <h2>Traduce tus subtítulos en tres pasos</h2>
+    <ol class="steps">
+      <li><b>Consigue una clave de API.</b> Es como una contraseña para usar la IA y se paga por uso: traducir un vídeo de 20 minutos suele costar céntimos. Si no sabes cuál elegir, empieza por <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">OpenRouter</a>, que da acceso a muchos modelos con una sola clave.
+        <button class="btn sm primary" id="welcomeKeys">Añadir mi clave</button></li>
+      <li><b>Arrastra tu archivo .srt o .vtt.</b> La app detecta el idioma y propone el de destino.</li>
+      <li><b>Pulsa «Traducir»,</b> revisa las líneas que quieras y descarga el resultado.</li>
+    </ol>
+    <p class="muted small">¿Prefieres no pagar nada? Usa un modelo en tu propio ordenador con <a href="https://lmstudio.ai" target="_blank" rel="noopener">LM Studio</a>. Tus subtítulos no salen de tu equipo.</p>
+  </section>
 
-            <div class="col-md-12 mt-3 mb-3">
-                <div class="card bg-dark-subtle text-light border-secondary">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Fordítási szabadságfok</h5>
-                        <div class="mb-3">
-                            <input type="range" class="form-range" id="temperatureSlider" min="0.1" max="2.0" step="0.1" value="1.0">
-                            <div class="d-flex justify-content-between">
-                                <small class="text-light">Pontos (0.1)</small>
-                                <small class="text-light">Kiegyensúlyozott (1.0)</small>
-                                <small class="text-light">Kreatív (2.0)</small>
-                            </div>
-                            <div class="text-center mt-2">
-                                <span class="badge bg-primary" id="temperatureValue">1.0</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <!-- 1. Archivo -->
+  <section class="card" id="stepFile">
+    <h2><span class="n">1</span> Subtítulos</h2>
+    <div id="restore" class="banner" hidden></div>
+    <div id="drop" class="drop" tabindex="0" role="button" aria-label="Elegir archivo de subtítulos">
+      <strong>Arrastra aquí un archivo .srt o .vtt</strong>
+      <span>o haz clic para elegirlo · también puedes abrir un proyecto guardado (.json)</span>
+      <input type="file" id="file" accept=".srt,.vtt,.json,.wrk" hidden>
+    </div>
+    <p id="fileInfo" class="fileinfo" hidden></p>
+    <div id="speakerBox" class="speaker" hidden></div>
+  </section>
 
-            <div class="col-md-12">
-                <div class="card bg-dark-subtle text-light border-secondary">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Fordítás módja</h5>
-                        <div class="mb-3">
-                            <select class="form-select bg-dark text-light border-secondary" id="translationMode">
-                                <option value="lm_studio_local" selected>LM Studio local</option>
-                                <option value="chatgpt_4o_mini">ChatGPT-4o mini</option>
-                                <option value="chatgpt_4o">ChatGPT-4o</option>
-                                <option value="openrouter">openrouter.ai (Choose a model from their entire current range!)</option>
-                            </select>
-                        </div>
-                        <div class="mb-3 d-none" id="openrouterModelContainer">
-                            <label for="openrouterModel" class="form-label">OpenRouter modell választás:</label>
-                            <select class="form-select bg-dark text-light border-secondary" id="openrouterModel">
-                                <option value="" disabled selected>Modellek betöltése...</option>
-                            </select>
-                            <small class="form-text text-muted mt-1">A modellek listája automatikusan frissül az OpenRouter API-ból</small>
-                        </div>
-                        <div class="form-check form-switch d-none mb-3 d-flex justify-content-start align-items-center" id="batchModeContainer">
-                            <input class="form-check-input me-2" type="checkbox" id="batchModeCheckbox" style="width: 2rem; height: 1.2rem; margin-right: 0.5rem;">
-                            <label class="form-check-label fw-bold text-warning me-2" for="batchModeCheckbox" id="batchModeLabel">Speciális nagy kontextusú fordítási mód</label>
-                            <i class="bi bi-info-circle text-warning" id="batchModeInfo" data-bs-toggle="tooltip" data-bs-placement="top"></i>
-                        </div>
-                        <div class="mb-3 d-none" id="apiKeyContainer">
-                            <div class="d-flex align-items-center mb-2">
-                                <label for="apiKey" class="form-label mb-0 me-2">API kulcs:</label>
-                                <button class="btn btn-sm btn-outline-secondary d-none" type="button" id="showApiKeyFieldBtn">
-                                    <i class="bi bi-key"></i> Megjelenítés
-                                </button>
-                            </div>
-                            <div class="input-group" id="apiKeyInputGroup">
-                                <input type="password" class="form-control bg-dark text-light border-secondary" id="apiKey" placeholder="Adja meg az API kulcsot">
-                                <button class="btn btn-outline-secondary" type="button" id="toggleApiKeyVisibility" title="API kulcs megjelenítése/elrejtése">
-                                    <i class="bi bi-eye" id="apiKeyVisibilityIcon"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <!-- 2. Ajustes -->
+  <section class="card" id="stepSettings">
+    <h2><span class="n">2</span> Traducción</h2>
 
-            <div class="col-md-12">
-                <div class="card bg-dark-subtle text-light border-secondary">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Fordítás beállítások</h5>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="sourceLanguage" class="form-label">Forrásnyelv:</label>
-                                <select class="form-select bg-dark text-light border-secondary" id="sourceLanguage">
-                                    <option value="en" selected>English</option>
-                                    <option value="hu">Magyar</option>
-                                    <option value="de">Deutsch</option>
-                                    <option value="es">Español</option>
-                                    <option value="fr">Français</option>
-                                    <option value="it">Italiano</option>
-                                    <option value="pt_PT">Português (Portugal)</option>
-                                    <option value="pt_BR">Português (Brasil)</option>
-                                    <option value="nl">Nederlands</option>
-                                    <option value="pl">Polski</option>
-                                    <option value="ru">Русский</option>
-                                    <option value="ja">日本語</option>
-                                    <option value="zh">中文</option>
-                                     <option value="zh_tw">中文 (台灣)</option>
-                                     <option value="zh_hk">中文 (香港)</option>
-                                    <option value="ar">العربية</option>
-                                    <option value="hi">हिन्दी</option>
-                                    <option value="ko">한국어</option>
-                                    <option value="tr">Türkçe</option>
-                                    <option value="sv">Svenska</option>
-                                    <option value="da">Dansk</option>
-                                    <option value="fi">Suomi</option>
-                                    <option value="no">Norsk</option>
-                                    <option value="cs">Čeština</option>
-                                    <option value="sk">Slovenčina</option>
-                                    <option value="ro">Română</option>
-                                    <option value="bg">Български</option>
-                                    <option value="el">Ελληνικά</option>
-                                    <option value="uk">Українська</option>
-                                    <option value="he">עברית</option>
-                                    <option value="th">ไทย</option>
-                                    <option value="vi">Tiếng Việt</option>
-                                    <option value="id">Bahasa Indonesia</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="targetLanguage" class="form-label">Célnyelv:</label>
-                                <select class="form-select bg-dark text-light border-secondary" id="targetLanguage">
-                                    <option value="en">English</option>
-                                    <option value="hu" selected>Magyar</option>
-                                    <option value="de">Deutsch</option>
-                                    <option value="es">Español</option>
-                                    <option value="fr">Français</option>
-                                    <option value="it">Italiano</option>
-                                    <option value="pt_PT">Português (Portugal)</option>
-                                    <option value="pt_BR">Português (Brasil)</option>
-                                    <option value="nl">Nederlands</option>
-                                    <option value="pl">Polski</option>
-                                    <option value="ru">Русский</option>
-                                    <option value="ja">日本語</option>
-                                    <option value="zh">中文</option>
-                                     <option value="zh_tw">中文 (台灣)</option>
-                                     <option value="zh_hk">中文 (香港)</option>
-                                    <option value="ar">العربية</option>
-                                    <option value="hi">हिन्दी</option>
-                                    <option value="ko">한국어</option>
-                                    <option value="tr">Türkçe</option>
-                                    <option value="sv">Svenska</option>
-                                    <option value="da">Dansk</option>
-                                    <option value="fi">Suomi</option>
-                                    <option value="no">Norsk</option>
-                                    <option value="cs">Čeština</option>
-                                    <option value="sk">Slovenčina</option>
-                                    <option value="ro">Română</option>
-                                    <option value="bg">Български</option>
-                                    <option value="el">Ελληνικά</option>
-                                    <option value="uk">Українська</option>
-                                    <option value="he">עברית</option>
-                                    <option value="th">ไทย</option>
-                                    <option value="vi">Tiếng Việt</option>
-                                    <option value="id">Bahasa Indonesia</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <button class="btn btn-primary" id="startTranslation" disabled>
-                                    <i class="bi bi-translate me-2"></i>Fordítás indítása
-                                </button>
-                                <button class="btn btn-warning d-none" id="stopTranslation">
-                                    <i class="bi bi-pause-circle me-2"></i>Fordítás megállítása
-                                </button>
-                                <button class="btn btn-danger d-none" id="resetTranslation">
-                                    <i class="bi bi-arrow-counterclockwise me-2"></i>Reset
-                                </button>
-                            </div>
-                            <div>
-                                <button class="btn btn-info d-none" id="saveWorkFile">
-                                    <i class="bi bi-file-earmark-text me-2"></i>Munkafájl mentése
-                                </button>
-                                <button class="btn btn-success" id="saveTranslation" disabled>
-                                    <i class="bi bi-download me-2"></i>Mentés
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="progress mb-4 d-none" id="progressContainer">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated" id="progressBar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
-                        </div>
-
-                        <div class="table-responsive">
-                            <table class="table table-dark table-striped table-hover">
-                                <thead>
-                                    <tr>
-                                        <th width="5%">#</th>
-                                        <th width="45%" id="originalHeader">Eredeti szöveg</th>
-                                        <th width="45%" id="translatedHeader">Fordított szöveg</th>
-                                        <th width="5%" id="actionsHeader">Műveletek</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="subtitleTable">
-                                    <!-- The subtitles appear here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <footer class="pt-3 mt-4 text-muted border-top border-secondary">
-            <p class="text-center">&copy; 2025 SRT Felirat Fordító</p>
-            <div class="text-center mt-3">
-                <a href="https://github.com/TTomas65/Subtitle-Translator-for-LM-Studio" target="_blank" class="text-decoration-none">
-                    <img src="Images/Github_logo.png" alt="GitHub" width="30" height="30" class="me-2">
-                    <span class="text-white">TTomas65/Subtitle-Translator-for-LM-Studio</span>
-                </a>
-            </div>
-        </footer>
+    <div class="row langs">
+      <label>Idioma original
+        <select id="src"></select>
+      </label>
+      <span class="arrow">→</span>
+      <label>Traducir a
+        <select id="tgt"></select>
+      </label>
+      <div class="chips" id="tgtChips" role="group" aria-label="Destinos rápidos">
+        <button type="button" data-lang="es">Español</button>
+        <button type="button" data-lang="en">Inglés</button>
+        <button type="button" data-lang="zh-Hans">中文 简体</button>
+      </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- FileSaver.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <!-- CryptoJS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <!-- Translations -->
-    <script src="js/translations.js"></script>
-    <!-- Set LM_STUDIO_BASE_URL from URL query before loading translationFunctions.js -->
-    <script>
-        // English comments only: configure LM Studio base from URL
-        (function() {
-            try {
-                var params = new URLSearchParams(window.location.search);
-                var direct = params.get('lm_base');
-                if (direct) {
-                    localStorage.setItem('LM_STUDIO_BASE_URL', direct);
-                } else if (params.get('useProxy') === '1') {
-                    // Prefer IPv4 loopback to avoid potential IPv6 (::1) issues
-                    localStorage.setItem('LM_STUDIO_BASE_URL', 'http://127.0.0.1:3001');
-                }
-            } catch (e) {
-                // ignore
-            }
-        })();
-    </script>
-    <!-- Először betöltjük a translationFunctions.js fájlt -->
-    <script src="js/translationFunctions.js"></script>
-    <!-- Aztán a Changelang.js fájlt -->
-    <script src="js/Changelang.js"></script>
-    <!-- Végül a script.js fájlt -->
-    <script src="js/script.js"></script>
+    <div class="row">
+      <label>Motor
+        <select id="provider"></select>
+      </label>
+      <label class="grow">Modelo
+        <span class="inline">
+          <select id="model"></select>
+          <button class="icon" id="reloadModels" title="Actualizar la lista de modelos" aria-label="Actualizar la lista de modelos">↻</button>
+        </span>
+      </label>
+      <label class="check small"><input type="checkbox" id="showAll"> Ver todos los modelos</label>
+    </div>
+    <p id="keyWarn" class="warn" hidden></p>
+
+    <div class="row">
+      <label class="grow">Fidelidad (temperatura) <b id="tempVal">0,5</b>
+        <input type="range" id="temp" min="0" max="1" step="0.1" value="0.5">
+        <span class="scale"><span>Literal</span><span>Libre</span></span>
+        <small id="tempNote" class="muted"></small>
+      </label>
+    </div>
+
+    <details class="ctx" id="ctxBox">
+      <summary><b>Contexto y glosario</b> <span class="muted small" id="ctxSummary">opcional, pero mejora mucho el resultado</span></summary>
+      <div class="row two">
+      <label>Sobre el vídeo <small class="muted">(opcional, ayuda mucho)</small>
+        <textarea id="notes" rows="4" placeholder="Ej.: Vídeo de wargames. Reseña de «Men of Iron» de GMT. Hablan dos personas en tono informal; tutea al espectador."></textarea>
+      </label>
+      <label>Glosario <small class="muted">(un término por línea: original = traducción)</small>
+        <textarea id="glossary" rows="4" placeholder="counter = ficha&#10;hex = hexágono"></textarea>
+        <button type="button" class="link" id="sampleGloss">+ Añadir glosario de ejemplo de wargames</button>
+      </label>
+    </div>
+
+    </details>
+
+    <details class="adv">
+      <summary>Opciones avanzadas</summary>
+      <div class="row">
+        <label>Subtítulos por petición
+          <select id="batch">
+            <option value="20">20</option>
+            <option value="40" selected>40 (recomendado)</option>
+            <option value="60">60</option>
+            <option value="100">100</option>
+          </select>
+        </label>
+        <label>Peticiones a la vez
+          <select id="conc">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+          </select>
+        </label>
+        <label>Caracteres por línea
+          <input type="number" id="maxChars" min="10" max="80" placeholder="42">
+        </label>
+        <label class="check"><input type="checkbox" id="fullCtx" checked>
+          <span>Enviar el guion completo como contexto<br><small class="muted">El modelo ve todo el vídeo y traduce con más coherencia. Con Claude, Gemini y GPT se reutiliza en caché y apenas cuesta más.</small></span>
+        </label>
+      </div>
+    </details>
+  </section>
+
+  <!-- 3. Traducir -->
+  <section class="card sticky" id="stepRun">
+    <div class="runbar">
+      <button class="btn primary" id="start" disabled>Traducir</button>
+      <button class="btn" id="stop" hidden>Pausar</button>
+      <button class="btn warnbtn" id="retryErrors" hidden>Reintentar los fallidos</button>
+      <div class="progress">
+        <div class="track"><div class="bar" id="bar"></div></div>
+        <div class="ptext"><span id="progressText"></span> <span id="estimate" class="muted"></span></div>
+        <div id="stats" class="muted small"></div>
+      </div>
+      <div class="resets">
+        <button class="btn sm ghost" id="clearTrans" disabled title="Borra las traducciones y deja el archivo cargado, para probar con otro modelo">Borrar traducción</button>
+        <button class="btn sm ghost danger" id="resetAll" disabled title="Quita el archivo, la traducción y el trabajo guardado">Empezar de cero</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Tabla -->
+  <section class="card" id="stepTable">
+    <div class="tablehead">
+      <h2><span class="n">3</span> Revisa y descarga</h2>
+      <select id="filter">
+        <option value="all">Todos</option>
+        <option value="pending">Sin traducir</option>
+        <option value="error">Con error</option>
+      </select>
+    </div>
+    <div class="findbar" id="findBar">
+      <input type="search" id="findText" placeholder="Buscar en el original o la traducción…" aria-label="Buscar">
+      <input type="text" id="replText" placeholder="Reemplazar por…" aria-label="Reemplazar por">
+      <label class="check small"><input type="checkbox" id="findCase"> Mayúsculas</label>
+      <label class="check small"><input type="checkbox" id="findWord" checked> Palabra entera</label>
+      <button class="btn sm" id="replBtn" disabled>Reemplazar en las traducciones</button>
+      <span id="findCount" class="muted small" aria-live="polite"></span>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>#</th><th>Original</th><th>Traducción <small class="muted">(editable)</small></th><th></th></tr></thead>
+        <tbody id="rows"><tr><td colspan="4" class="muted center">Aquí aparecerán tus subtítulos cuando cargues un archivo.</td></tr></tbody>
+      </table>
+    </div>
+    <div class="exportbar" id="exportBar">
+      <button class="btn primary" data-exp="srt" disabled>Descargar .srt</button>
+      <button class="btn" data-exp="vtt" disabled>.vtt</button>
+      <button class="btn" data-exp="bi" disabled title="Traducción y original en el mismo subtítulo">Bilingüe .srt</button>
+      <button class="btn" data-exp="orig" disabled title="El original sin etiquetas de hablante">Original limpio .srt</button>
+      <span class="spacer"></span>
+      <button class="btn ghost" data-exp="project" disabled title="Para seguir otro día o en otro ordenador">Guardar proyecto</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>Tus claves y tus subtítulos solo viajan de tu navegador al proveedor que elijas. Esta página no tiene servidor propio.</p>
+  <p>Basado en <a href="https://github.com/TTomas65/Subtitle-Translator-for-LM-Studio" target="_blank" rel="noopener">Subtitle Translator</a> de TTomas65 · licencia MIT.</p>
+</footer>
+
+<dialog id="helpDlg">
+  <div class="help">
+    <h2>Cómo funciona</h2>
+    <h3>Qué hace</h3>
+    <p>Envía tus subtítulos por lotes a la IA que elijas, junto con el guion completo del vídeo como contexto, para que la traducción sea coherente de principio a fin. Cada subtítulo conserva sus tiempos y sus saltos de línea.</p>
+    <h3>Cuánto cuesta</h3>
+    <p>La app es gratis. Lo que pagas es el uso de la IA, directamente al proveedor y con tu clave. Antes de empezar verás una estimación, y durante la traducción, el gasto real. Como referencia, un vídeo de 20 minutos cuesta menos de un céntimo con Claude Haiku o DeepSeek, unos 5 céntimos con Gemini Flash y unos 10-20 céntimos con Claude Sonnet. Con LM Studio es gratis.</p>
+    <h3>Qué modelo elegir</h3>
+    <ul>
+      <li><b>Calidad y naturalidad:</b> Claude Sonnet o Gemini (gama alta).</li>
+      <li><b>Rápido y barato:</b> Gemini Flash, Claude Haiku o DeepSeek.</li>
+      <li><b>Al chino:</b> Qwen Max o Gemini.</li>
+      <li><b>Sin conexión y gratis:</b> LM Studio con Qwen o Gemma.</li>
+    </ul>
+    <h3>Privacidad</h3>
+    <p>Esta página no tiene servidor propio, ni registro, ni analítica. Tus claves se guardan solo en este navegador. Los subtítulos viajan directamente de tu navegador al proveedor elegido (Anthropic, OpenRouter, OpenAI) o se quedan en tu ordenador si usas LM Studio.</p>
+    <h3>Consejos</h3>
+    <ul>
+      <li>Describe el vídeo en «Contexto y glosario»: quién habla, de qué trata y en qué tono.</li>
+      <li>Pon en el glosario los términos y las siglas que deban traducirse siempre igual.</li>
+      <li>Si no te gusta el resultado, pulsa «Borrar traducción» y prueba con otro modelo.</li>
+      <li>El botón ↻ de cada fila vuelve a traducir solo esa línea.</li>
+    </ul>
+    <div class="actions"><button class="btn primary" id="helpClose">Entendido</button></div>
+  </div>
+</dialog>
+
+<dialog id="keysDlg">
+  <form method="dialog" class="keys">
+    <h2>Claves de API</h2>
+    <p class="muted">Solo necesitas la del motor que vayas a usar. Se guardan en este navegador y no se envían a ningún otro sitio.</p>
+    <label>Claude (Anthropic) <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">conseguir</a>
+      <span class="inline"><input type="password" id="kAnthropic" placeholder="sk-ant-…" autocomplete="off"><button type="button" class="icon" data-eye="kAnthropic">👁</button></span>
+    </label>
+    <label>OpenRouter <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">conseguir</a>
+      <span class="inline"><input type="password" id="kOpenrouter" placeholder="sk-or-…" autocomplete="off"><button type="button" class="icon" data-eye="kOpenrouter">👁</button></span>
+    </label>
+    <label>OpenAI <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">conseguir</a>
+      <span class="inline"><input type="password" id="kOpenai" placeholder="sk-…" autocomplete="off"><button type="button" class="icon" data-eye="kOpenai">👁</button></span>
+    </label>
+    <label>Dirección de LM Studio
+      <input type="text" id="kLm" placeholder="http://127.0.0.1:1234">
+      <small class="muted">En LM Studio: pestaña Developer → arranca el servidor y activa «Enable CORS».</small>
+    </label>
+    <label class="check"><input type="checkbox" id="kRemember" checked> Recordar las claves en este navegador</label>
+    <div class="actions">
+      <button class="btn ghost" id="keysCancel">Cancelar</button>
+      <button class="btn primary" id="keysSave">Guardar</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toasts" aria-live="polite"></div>
+<script src="app.js"></script>
 </body>
 </html>
