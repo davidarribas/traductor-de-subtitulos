@@ -22,7 +22,7 @@ function t(key, vars = {}) {
  * ========================================================================= */
 const Core = (() => {
 
-  const VERSION = '2.1';
+  const VERSION = '2.1'; // al cambiarla, cambia también ?v= en index.html
 
   // código, nombre en la interfaz, nombre para el prompt (en inglés)
   // código, nombre en español, nombre para el prompt, nombre en inglés
