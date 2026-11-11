@@ -5,35 +5,49 @@
 'use strict';
 
 /* =========================================================================
+ * 0. IDIOMA DE LA INTERFAZ (los textos están en i18n.js)
+ * ========================================================================= */
+const I18N_ = typeof I18N !== 'undefined' ? I18N : require('./i18n.js');
+let UI = 'es';
+function setUiLang(lang) { UI = I18N_[lang] ? lang : 'es'; }
+function t(key, vars = {}) {
+  const v = (I18N_[UI] && I18N_[UI][key]) ?? I18N_.es[key];
+  if (v == null) return key;
+  if (typeof v === 'function') return v(vars);
+  return v.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
+}
+
+/* =========================================================================
  * 1. NÚCLEO (funciones puras, se pueden probar sin navegador)
  * ========================================================================= */
 const Core = (() => {
 
-  const VERSION = '2.0';
+  const VERSION = '2.1';
 
   // código, nombre en la interfaz, nombre para el prompt (en inglés)
+  // código, nombre en español, nombre para el prompt, nombre en inglés
   const LANGS = [
-    ['es', 'Español (España)', 'Spanish (Spain)'],
-    ['en', 'Inglés', 'English'],
-    ['zh-Hans', 'Chino simplificado', 'Simplified Chinese (Mainland China)'],
-    ['es-419', 'Español (Latinoamérica)', 'Latin American Spanish'],
-    ['zh-Hant', 'Chino tradicional', 'Traditional Chinese'],
-    ['fr', 'Francés', 'French'],
-    ['de', 'Alemán', 'German'],
-    ['it', 'Italiano', 'Italian'],
-    ['pt-PT', 'Portugués (Portugal)', 'European Portuguese'],
-    ['pt-BR', 'Portugués (Brasil)', 'Brazilian Portuguese'],
-    ['ca', 'Catalán', 'Catalan'],
-    ['eu', 'Euskera', 'Basque'],
-    ['gl', 'Gallego', 'Galician'],
-    ['nl', 'Neerlandés', 'Dutch'],
-    ['pl', 'Polaco', 'Polish'],
-    ['ru', 'Ruso', 'Russian'],
-    ['uk', 'Ucraniano', 'Ukrainian'],
-    ['ja', 'Japonés', 'Japanese'],
-    ['ko', 'Coreano', 'Korean'],
+    ['es', 'Español (España)', 'Spanish (Spain)', 'Spanish (Spain)'],
+    ['en', 'Inglés', 'English', 'English'],
+    ['zh-Hans', 'Chino simplificado', 'Simplified Chinese (Mainland China)', 'Chinese (Simplified)'],
+    ['es-419', 'Español (Latinoamérica)', 'Latin American Spanish', 'Spanish (Latin America)'],
+    ['zh-Hant', 'Chino tradicional', 'Traditional Chinese', 'Chinese (Traditional)'],
+    ['fr', 'Francés', 'French', 'French'],
+    ['de', 'Alemán', 'German', 'German'],
+    ['it', 'Italiano', 'Italian', 'Italian'],
+    ['pt-PT', 'Portugués (Portugal)', 'European Portuguese', 'Portuguese (Portugal)'],
+    ['pt-BR', 'Portugués (Brasil)', 'Brazilian Portuguese', 'Portuguese (Brazil)'],
+    ['ca', 'Catalán', 'Catalan', 'Catalan'],
+    ['eu', 'Euskera', 'Basque', 'Basque'],
+    ['gl', 'Gallego', 'Galician', 'Galician'],
+    ['nl', 'Neerlandés', 'Dutch', 'Dutch'],
+    ['pl', 'Polaco', 'Polish', 'Polish'],
+    ['ru', 'Ruso', 'Russian', 'Russian'],
+    ['uk', 'Ucraniano', 'Ukrainian', 'Ukrainian'],
+    ['ja', 'Japonés', 'Japanese', 'Japanese'],
+    ['ko', 'Coreano', 'Korean', 'Korean'],
   ];
-  const langName = c => (LANGS.find(l => l[0] === c) || [c, c, c])[1];
+  const langName = c => (LANGS.find(l => l[0] === c) || [c, c, c, c])[UI === 'en' ? 3 : 1];
   const langPrompt = c => (LANGS.find(l => l[0] === c) || [c, c, c])[2];
   const isCJK = c => /^(zh|ja|ko)/.test(c || '');
 
@@ -197,7 +211,12 @@ const Core = (() => {
     if (best === 'pt') return 'pt-PT';
     return best;
   }
-  const defaultTarget = src => (src === 'en' ? 'es' : 'en');
+  // Destino por defecto: el idioma de la interfaz, salvo que el archivo ya esté en ese idioma
+  const defaultTarget = src => {
+    const ui = UI === 'en' ? 'en' : 'es';
+    const same = src === ui || (ui === 'es' && src === 'es-419');
+    return same ? (ui === 'es' ? 'en' : 'es') : ui;
+  };
 
   /* ---------- Prompt ---------- */
 
@@ -344,21 +363,21 @@ Return exactly one entry for every id you are asked to translate.`;
 
   // Precios en USD por millón de tokens (aproximados, noviembre 2026)
   const CLAUDE_MODELS = [
-    { id: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5 · recomendado', price: { in: 2, out: 10, cr: 0.10, cw: 2.5 } },
-    { id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5 · rápido y muy barato', price: { in: 0.10, out: 0.50, cr: 0.01, cw: 0.125 } },
-    { id: 'claude-opus-5-5', name: 'Claude Opus 5.5 · máxima calidad', price: { in: 4, out: 20, cr: 0.40, cw: 5 } },
+    { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5', hintKey: 'hint.recommended', price: { in: 2, out: 10, cr: 0.10, cw: 2.5 } },
+    { id: 'claude-haiku-5-5', label: 'Claude Haiku 5.5', hintKey: 'hint.cheapFast', price: { in: 0.10, out: 0.50, cr: 0.01, cw: 0.125 } },
+    { id: 'claude-opus-5-5', label: 'Claude Opus 5.5', hintKey: 'hint.best', price: { in: 4, out: 20, cr: 0.40, cw: 5 } },
   ];
 
   const JUNK = /(:|image|audio|vision|-vl\b|search|online|tts|realtime|transcri|embed|guard|moderation|codex|instruct|oss|-lite|nano|dall|whisper|computer|omni|prime|-exp|coder|math|distill|prover)/i;
 
   const OR_FAMILIES = [
-    { re: /^google\/gemini-[\d.]+-flash/, tag: 'Gemini Flash', hint: 'rápido, barato y muy bueno traduciendo' },
-    { re: /^anthropic\/claude-sonnet/, tag: 'Claude Sonnet', hint: 'muy natural' },
-    { re: /^google\/gemini-(?![\d.]+-flash)/, tag: 'Gemini', hint: 'gama alta de Google' },
-    { re: /^anthropic\/claude-haiku/, tag: 'Claude Haiku', hint: 'baratísimo' },
-    { re: /^openai\/gpt-/, tag: 'GPT', hint: 'OpenAI', extraJunk: /mini|chat|-pro\b/ },
-    { re: /^deepseek\/deepseek-/, tag: 'DeepSeek', hint: 'muy barato', extraJunk: /r1/ },
-    { re: /^qwen\/qwen[\d.]*-max/, tag: 'Qwen Max', hint: 'muy bueno con el chino' },
+    { re: /^google\/gemini-[\d.]+-flash/, tag: 'Gemini Flash', hintKey: 'hint.geminiFlash' },
+    { re: /^anthropic\/claude-sonnet/, tag: 'Claude Sonnet', hintKey: 'hint.natural' },
+    { re: /^google\/gemini-(?![\d.]+-flash)/, tag: 'Gemini', hintKey: 'hint.geminiPro' },
+    { re: /^anthropic\/claude-haiku/, tag: 'Claude Haiku', hintKey: 'hint.veryCheap' },
+    { re: /^openai\/gpt-/, tag: 'GPT', hintKey: 'hint.openai', extraJunk: /mini|chat|-pro\b/ },
+    { re: /^deepseek\/deepseek-/, tag: 'DeepSeek', hintKey: 'hint.cheap', extraJunk: /r1/ },
+    { re: /^qwen\/qwen[\d.]*-max/, tag: 'Qwen Max', hintKey: 'hint.chinese' },
   ];
 
   function pickRecommended(models, families) {
@@ -368,7 +387,7 @@ Return exactly one entry for every id you are asked to translate.`;
       const cands = models.filter(m => f.re.test(m.id) && !JUNK.test(m.id) && !(f.extraJunk && f.extraJunk.test(m.id)));
       if (!cands.length) continue;
       cands.sort((a, b) => (/preview/i.test(a.id) - /preview/i.test(b.id)) || ((b.created || 0) - (a.created || 0)));
-      rec.push({ ...cands[0], tag: f.tag, hint: f.hint });
+      rec.push({ ...cands[0], tag: f.tag, hintKey: f.hintKey });
     }
     return rec;
   }
@@ -409,10 +428,10 @@ Return exactly one entry for every id you are asked to translate.`;
 const Api = (() => {
 
   const PROVIDERS = {
-    anthropic: { label: 'Claude (Anthropic)', key: true, temp: false, keyUrl: 'https://console.anthropic.com/settings/keys' },
-    openrouter: { label: 'OpenRouter (Gemini, GPT, DeepSeek…)', key: true, temp: true, keyUrl: 'https://openrouter.ai/keys' },
-    openai: { label: 'OpenAI (ChatGPT)', key: true, temp: true, keyUrl: 'https://platform.openai.com/api-keys' },
-    lmstudio: { label: 'LM Studio (local, gratis)', key: false, temp: true },
+    anthropic: { get label() { return t('prov.anthropic'); }, key: true, temp: false, keyUrl: 'https://console.anthropic.com/settings/keys' },
+    openrouter: { get label() { return t('prov.openrouter'); }, key: true, temp: true, keyUrl: 'https://openrouter.ai/keys' },
+    openai: { get label() { return t('prov.openai'); }, key: true, temp: true, keyUrl: 'https://platform.openai.com/api-keys' },
+    lmstudio: { get label() { return t('prov.lmstudio'); }, key: false, temp: true },
   };
 
   // Ajustes que un modelo ha rechazado (se aprenden y se recuerdan)
@@ -436,9 +455,9 @@ const Api = (() => {
   }
 
   function friendly(status, msg) {
-    if (status === 401 || status === 403) return 'La clave de API no es válida o no tiene permiso para este modelo.';
-    if (status === 402) return 'No queda saldo en la cuenta del proveedor.';
-    if (status === 404) return 'El modelo no existe o ya no está disponible. Elige otro.';
+    if (status === 401 || status === 403) return t('err.key');
+    if (status === 402) return t('err.credit');
+    if (status === 404) return t('err.model');
     return `Error ${status}: ${String(msg).slice(0, 300)}`;
   }
 
@@ -505,9 +524,9 @@ const Api = (() => {
         resp = await fetch(req.url, { method: 'POST', headers: req.headers, body: JSON.stringify(req.body), signal });
       } catch (e) {
         if (e.name === 'AbortError') throw e;
-        if (provider === 'lmstudio') throw new ApiError('No se puede conectar con LM Studio. Comprueba que el servidor está arrancado y que «Enable CORS» está activado.', { fatal: true });
-        if (tries > 5) throw new ApiError('Sin conexión con el proveedor.', { fatal: true });
-        onNotice?.(`Problema de conexión; reintentando (${tries}/5)…`);
+        if (provider === 'lmstudio') throw new ApiError(t('err.lmConn'), { fatal: true });
+        if (tries > 5) throw new ApiError(t('err.noConn'), { fatal: true });
+        onNotice?.(t('notice.retryConn', { n: tries }));
         await sleep(2000 * tries, signal);
         continue;
       }
@@ -520,14 +539,15 @@ const Api = (() => {
         const changed = learnFrom(msg, q, req.body);
         if (changed.length) {
           saveQuirks();
-          if (changed.includes('temperatura')) onNotice?.('Este modelo no deja ajustar la temperatura: se usará la suya.');
+          if (changed.includes('temperatura')) onNotice?.(t('notice.noTemp'));
           continue;
         }
       }
       if ([408, 409, 425, 429, 500, 502, 503, 504, 529].includes(resp.status) && tries <= 6) {
         const ra = parseFloat(resp.headers.get('retry-after')) || 0;
         const wait = Math.min(60, ra || 2 ** tries) * 1000 + Math.random() * 500;
-        onNotice?.(resp.status === 429 ? `Límite de peticiones del proveedor; espero ${Math.round(wait / 1000)} s…` : `El proveedor está saturado (${resp.status}); espero ${Math.round(wait / 1000)} s…`);
+        const secs = Math.round(wait / 1000);
+        onNotice?.(resp.status === 429 ? t('notice.rate', { s: secs }) : t('notice.busy', { status: resp.status, s: secs }));
         await sleep(wait, signal);
         continue;
       }
@@ -554,17 +574,17 @@ const Api = (() => {
   }
 
   async function listModels(provider, cfg) {
-    if (provider === 'anthropic') return { rec: Core.CLAUDE_MODELS, all: [] };
+    if (provider === 'anthropic') return { rec: Core.CLAUDE_MODELS.map(m => ({ ...m, name: `${m.label} · ${t(m.hintKey)}` })), all: [] };
     if (provider === 'openrouter') {
       const r = await fetch('https://openrouter.ai/api/v1/models');
-      if (!r.ok) throw new Error('No se pudo cargar la lista de OpenRouter');
+      if (!r.ok) throw new Error(t('err.orList'));
       const data = (await r.json()).data || [];
       const all = data.map(m => ({
         id: m.id, name: m.name || m.id, created: m.created,
         temp: Array.isArray(m.supported_parameters) ? m.supported_parameters.includes('temperature') : undefined,
         price: m.pricing ? { in: +m.pricing.prompt * 1e6, out: +m.pricing.completion * 1e6, cr: +(m.pricing.input_cache_read || m.pricing.prompt) * 1e6, cw: +(m.pricing.input_cache_write || m.pricing.prompt) * 1e6 } : null,
       }));
-      const rec = Core.pickRecommended(all, Core.OR_FAMILIES).map(m => ({ ...m, name: `${m.name.replace(/^[^:]+:\s*/, '')} · ${m.hint}` }));
+      const rec = Core.pickRecommended(all, Core.OR_FAMILIES).map(m => ({ ...m, name: `${m.name.replace(/^[^:]+:\s*/, '')} · ${t(m.hintKey)}` }));
       return { rec, all: all.sort((a, b) => a.id.localeCompare(b.id)) };
     }
     if (provider === 'openai') {
@@ -576,7 +596,7 @@ const Api = (() => {
     }
     // LM Studio
     const r = await fetch(`${lmBase(cfg)}/v1/models`);
-    if (!r.ok) throw new Error('LM Studio no responde');
+    if (!r.ok) throw new Error(t('err.lmNoResp'));
     const all = ((await r.json()).data || []).map(m => ({ id: m.id, name: m.id })).filter(m => !/embed/i.test(m.id));
     const rec = all.filter(m => /(qwen|gemma|translat|mistral|llama|deepseek|hunyuan)/i.test(m.id));
     return { rec: rec.length ? rec : all, all };
@@ -631,10 +651,10 @@ const Engine = (() => {
             } else if (b.attempt < 2) {
               queue.unshift({ ids: missing, attempt: b.attempt + 1 });
               missing.forEach(i => { st[i] = 'pending'; job.onRow?.(i); });
-              if (r.refusal) job.onNotice?.('El modelo se ha negado a traducir algunas líneas; reintento.');
+              if (r.refusal) job.onNotice?.(t('notice.refusal'));
             } else {
               missing.forEach(i => { st[i] = 'error'; job.onRow?.(i); });
-              job.onNotice?.(`${missing.length} subtítulo(s) no se han podido traducir. Están marcados en rojo: puedes reintentarlos.`);
+              job.onNotice?.(t('notice.failed', { n: missing.length }));
             }
           }
         } catch (e) {
@@ -656,7 +676,7 @@ const Engine = (() => {
   return { run };
 })();
 
-if (typeof module !== 'undefined') module.exports = { Core, Api, Engine };
+if (typeof module !== 'undefined') module.exports = { Core, Api, Engine, t, setUiLang };
 
 /* =========================================================================
  * 4. INTERFAZ
@@ -670,8 +690,22 @@ if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded
     del(k) { try { localStorage.removeItem('ts2.' + k); } catch { } },
   };
 
-  const WARGAME_GLOSSARY = `# Glosario de ejemplo para wargames (edítalo a tu gusto)
-counter = ficha
+  // ---------- Idioma de la interfaz ----------
+  const urlLang = new URLSearchParams(location.search).get('lang');
+  if (urlLang && I18N_[urlLang]) store.set('uiLang', urlLang);
+  setUiLang(store.get('uiLang', (navigator.language || 'es').toLowerCase().startsWith('es') ? 'es' : 'en'));
+  document.documentElement.lang = UI;
+  document.title = t('app.title');
+  function applyI18n() {
+    document.querySelectorAll('[data-i]').forEach(e => { e.innerHTML = t(e.dataset.i); });
+    document.querySelectorAll('[data-i-ph]').forEach(e => { e.placeholder = t(e.dataset.iPh); });
+    document.querySelectorAll('[data-i-title]').forEach(e => { e.title = t(e.dataset.iTitle); });
+    document.querySelectorAll('[data-i-aria]').forEach(e => { e.setAttribute('aria-label', t(e.dataset.iAria)); });
+    $('#batchRec').textContent = `40 (${t('adv.recommended')})`;
+  }
+  applyI18n();
+
+  const WARGAME_GLOSSARY = `counter = ficha
 hex = hexágono
 zone of control (ZOC) = zona de control (ZdC)
 combat results table (CRT) = tabla de resultados de combate (TRC)
@@ -732,9 +766,9 @@ stacking = apilamiento`;
   const notice = msg => { if (Date.now() - lastNotice > 1500) { lastNotice = Date.now(); toast(msg, 'warn'); } };
 
   // ---------- Idiomas ----------
-  for (const [code, name] of Core.LANGS) {
-    el.src.add(new Option(name, code));
-    el.tgt.add(new Option(name, code));
+  for (const [code] of Core.LANGS) {
+    el.src.add(new Option(Core.langName(code), code));
+    el.tgt.add(new Option(Core.langName(code), code));
   }
   el.src.value = 'en'; el.tgt.value = 'es';
   el.src.addEventListener('change', () => { S.src = el.src.value; if (S.tgt === S.src) setTarget(Core.defaultTarget(S.src)); updateUI(); });
@@ -742,9 +776,19 @@ stacking = apilamiento`;
   el.chips.addEventListener('click', e => { const c = e.target.closest('[data-lang]'); if (c) setTarget(c.dataset.lang); });
   function setTarget(code) {
     S.tgt = code; el.tgt.value = code;
-    el.chips.querySelectorAll('[data-lang]').forEach(c => c.classList.toggle('on', c.dataset.lang === code));
+    renderChips();
     el.maxChars.placeholder = Core.isCJK(code) ? '16' : '42';
     updateUI(); saveProject();
+  }
+
+  // Destinos recientes: botones rápidos solo para los idiomas que ya has usado
+  function renderChips() {
+    const recent = store.get('recentTgt', []).filter(c => c !== S.tgt && Core.LANGS.some(l => l[0] === c)).slice(0, 3);
+    $('#chipList').innerHTML = recent.map(c => `<button type="button" data-lang="${c}">${esc(Core.langName(c))}</button>`).join('');
+    el.chips.hidden = !recent.length;
+  }
+  function pushRecent(code) {
+    store.set('recentTgt', [code, ...store.get('recentTgt', []).filter(c => c !== code)].slice(0, 4));
   }
 
   // ---------- Proveedor y modelos ----------
@@ -757,13 +801,13 @@ stacking = apilamiento`;
 
   async function loadModels() {
     const p = el.provider.value;
-    el.model.innerHTML = '<option>Cargando modelos…</option>';
+    el.model.innerHTML = `<option>${t('models.loading')}</option>`;
     el.showAll.parentElement.hidden = p === 'anthropic';
     try {
       S.models = await Api.listModels(p, cfg);
     } catch (e) {
       S.models = { rec: [], all: [] };
-      toast(e.message || 'No se pudo cargar la lista de modelos', 'error');
+      toast(e.message || t('models.loadErr'), 'error');
     }
     fillModels();
   }
@@ -771,16 +815,16 @@ stacking = apilamiento`;
     const p = el.provider.value;
     const saved = store.get('model', {})[p];
     el.model.innerHTML = '';
-    const g1 = document.createElement('optgroup'); g1.label = 'Recomendados para traducir';
+    const g1 = document.createElement('optgroup'); g1.label = t('models.rec');
     S.models.rec.forEach(m => g1.appendChild(new Option(m.name, m.id)));
     if (S.models.rec.length) el.model.appendChild(g1);
     if (el.showAll.checked && S.models.all.length) {
-      const g2 = document.createElement('optgroup'); g2.label = 'Todos';
+      const g2 = document.createElement('optgroup'); g2.label = t('models.all');
       S.models.all.forEach(m => g2.appendChild(new Option(m.name, m.id)));
       el.model.appendChild(g2);
     }
     if (!el.model.options.length) {
-      el.model.appendChild(new Option(p === 'lmstudio' ? 'Arranca LM Studio y pulsa ↻' : p === 'openai' ? 'Añade tu clave de OpenAI y pulsa ↻' : 'Sin modelos', ''));
+      el.model.appendChild(new Option(p === 'lmstudio' ? t('models.lmHint') : p === 'openai' ? t('models.openaiHint') : t('models.none'), ''));
     }
     if (saved && [...el.model.options].some(o => o.value === saved)) el.model.value = saved;
     updateUI();
@@ -796,17 +840,17 @@ stacking = apilamiento`;
     const g = Core.parseGlossary(el.glossary.value).length;
     const n = el.notes.value.trim();
     const parts = [];
-    if (n) parts.push('con notas del vídeo');
-    if (g) parts.push(`${g} término${g === 1 ? '' : 's'} en el glosario`);
-    el.ctxSummary.textContent = parts.length ? parts.join(' · ') : 'opcional, pero mejora mucho el resultado';
+    if (n) parts.push(t('ctx.withNotes'));
+    if (g) parts.push(t('ctx.terms', { n: g }));
+    el.ctxSummary.textContent = parts.length ? parts.join(' · ') : t('ctx.hint');
   }
   el.glossary.value = store.get('glossary', '');
   el.ctxBox.open = store.get('ctxOpen', !!el.glossary.value.trim());
   el.ctxBox.addEventListener('toggle', () => store.set('ctxOpen', el.ctxBox.open));
   el.glossary.addEventListener('input', () => { store.set('glossary', el.glossary.value); updateCtxSummary(); updateUI(); });
   el.sampleGloss.addEventListener('click', () => {
-    if (el.glossary.value.includes('counter = ficha')) return toast('El glosario de ejemplo ya está añadido.', 'info', 2500);
-    el.glossary.value = (el.glossary.value.trim() ? el.glossary.value.trim() + '\n' : '') + WARGAME_GLOSSARY;
+    if (el.glossary.value.includes('counter = ficha')) return toast(t('ctx.sampleDone'), 'info', 2500);
+    el.glossary.value = (el.glossary.value.trim() ? el.glossary.value.trim() + '\n' : '') + `# ${t('ctx.sampleHeader')}\n` + WARGAME_GLOSSARY;
     store.set('glossary', el.glossary.value); updateCtxSummary(); updateUI();
   });
   el.notes.addEventListener('input', () => { updateCtxSummary(); updateUI(); saveProject(); });
@@ -840,7 +884,7 @@ stacking = apilamiento`;
     if (remember) { store.set('keys', cfg.keys); try { sessionStorage.removeItem('ts2.keys'); } catch { } }
     else { store.del('keys'); try { sessionStorage.setItem('ts2.keys', JSON.stringify(cfg.keys)); } catch { } }
     el.keysDlg.close();
-    toast('Ajustes guardados', 'ok', 2500);
+    toast(t('keys.saved'), 'ok', 2500);
     loadModels();
   });
   $('#keysCancel').addEventListener('click', e => { e.preventDefault(); el.keysDlg.close(); });
@@ -857,12 +901,12 @@ stacking = apilamiento`;
   el.file.addEventListener('change', () => { if (el.file.files[0]) openFile(el.file.files[0]); el.file.value = ''; });
 
   async function openFile(file) {
-    if (S.running) return toast('Para la traducción antes de cargar otro archivo.', 'warn');
+    if (S.running) return toast(t('file.stopFirst'), 'warn');
     el.restore.hidden = true;
     const text = await file.text();
     if (/\.(json|wrk)$/i.test(file.name)) return loadProjectFile(text, file.name);
     const subs = Core.parseSubtitles(text, file.name);
-    if (!subs.length) return toast('No he encontrado subtítulos en ese archivo. ¿Es un .srt o .vtt?', 'error');
+    if (!subs.length) return toast(t('file.noSubs'), 'error');
     S.fileName = file.name.replace(/\.(srt|vtt)$/i, '');
     S.subs = subs; S.out = subs.map(() => ''); S.st = subs.map(() => 'pending');
     S.usage = { in: 0, out: 0, cr: 0, cw: 0, cost: 0, req: 0 };
@@ -873,7 +917,7 @@ stacking = apilamiento`;
     setTarget(Core.defaultTarget(S.src));
     el.notes.value = '';
     afterLoad();
-    toast(`${subs.length} subtítulos cargados · idioma detectado: ${Core.langName(S.src)}`, 'ok', 3500);
+    toast(t('file.loaded', { n: subs.length, lang: Core.langName(S.src) }), 'ok', 3500);
   }
 
   function applySpeakers() {
@@ -889,10 +933,10 @@ stacking = apilamiento`;
     const list = sp.labels.slice(0, 8).map(l => `<span class="tag">${esc(l.label)} <b>${l.count}</b></span>`).join(' ');
     el.speakerBox.innerHTML = `
       <label class="check"><input type="checkbox" id="spkToggle" ${S.removeSpeakers ? 'checked' : ''}>
-      <span><b>Quitar las etiquetas de hablante</b> (${sp.affected} subtítulos)</span></label>
+      <span>${t('spk.remove', { n: sp.affected })}</span></label>
       <div class="tags">${list}${sp.arrows ? ' <span class="tag">&gt;&gt; <b>' + sp.arrows + '</b></span>' : ''}${sp.vtags ? ' <span class="tag">&lt;v&gt; <b>' + sp.vtags + '</b></span>' : ''}</div>`;
     $('#spkToggle').addEventListener('change', e => {
-      if (S.st.some(x => x === 'done')) toast('Ojo: los subtítulos ya traducidos no cambian. Retradúcelos si hace falta.', 'warn');
+      if (S.st.some(x => x === 'done')) toast(t('spk.warn'), 'warn');
       S.removeSpeakers = e.target.checked; applySpeakers(); renderTable(); saveProject();
     });
   }
@@ -900,7 +944,7 @@ stacking = apilamiento`;
   function afterLoad() {
     hideWelcome();
     updateCtxSummary();
-    el.fileInfo.innerHTML = `<b>${esc(S.fileName)}</b> · ${S.subs.length} subtítulos · ${S.subs[S.subs.length - 1]?.end.slice(0, 8) || ''}`;
+    el.fileInfo.innerHTML = t('file.info', { name: esc(S.fileName), n: S.subs.length, dur: S.subs[S.subs.length - 1]?.end.slice(0, 8) || '' });
     el.fileInfo.hidden = false;
     document.body.classList.add('loaded');
     renderSpeakerBox();
@@ -942,20 +986,20 @@ stacking = apilamiento`;
       S.st = S.out.map(t => (t ? 'done' : 'pending'));
       S.speakers = Core.analyzeSpeakers(S.subs); S.removeSpeakers = false;
       S.src = Core.detectLang(S.subs); el.src.value = S.src; setTarget(Core.defaultTarget(S.src));
-    } else throw new Error('formato desconocido');
+    } else throw new Error(t('err.unknownFormat'));
     afterLoad();
   }
   function loadProjectFile(text, name) {
-    try { restoreProject(JSON.parse(text)); toast(`Proyecto «${S.fileName}» recuperado`, 'ok', 3000); }
-    catch { toast(`No he podido leer ${name}`, 'error'); }
+    try { restoreProject(JSON.parse(text)); toast(t('proj.restored', { name: S.fileName }), 'ok', 3000); }
+    catch { toast(t('proj.cantRead', { name }), 'error'); }
   }
   (function offerRestore() {
     const p = store.get('project', null);
     if (!p || !p.subs?.length) return;
     const done = p.st.filter(x => x === 'done').length;
     el.restore.hidden = false;
-    el.restore.innerHTML = `Tienes un trabajo a medias: <b>${esc(p.fileName)}</b> (${done}/${p.subs.length} traducidos).
-      <button class="btn sm" id="rYes">Recuperar</button> <button class="btn sm ghost" id="rNo">Descartar</button>`;
+    el.restore.innerHTML = `${t('restore.banner', { name: esc(p.fileName), done, total: p.subs.length })}
+      <button class="btn sm" id="rYes">${t('restore.yes')}</button> <button class="btn sm ghost" id="rNo">${t('restore.no')}</button>`;
     $('#rYes').onclick = () => { restoreProject(p); el.restore.hidden = true; };
     $('#rNo').onclick = () => { store.del('project'); el.restore.hidden = true; };
   })();
@@ -979,7 +1023,7 @@ stacking = apilamiento`;
       if (h || countIn(re, s.text)) rows++;
       hits += h;
     });
-    el.findCount.textContent = rows ? `${rows} subtítulo${rows === 1 ? '' : 's'} · ${hits} en las traducciones` : 'Sin resultados';
+    el.findCount.textContent = rows ? t('find.count', { rows, hits }) : t('find.none');
     el.replBtn.disabled = !hits || S.running;
   }
   let findT = null;
@@ -994,8 +1038,8 @@ stacking = apilamiento`;
     let n = 0, rows = 0;
     S.out = S.out.map(t => { const h = countIn(re, t); if (!h) return t; n += h; rows++; return t.replace(re, () => by); });
     renderTable(); updateFindCount(); saveProject();
-    el.findCount.innerHTML = `${n} cambio${n === 1 ? '' : 's'} en ${rows} subtítulo${rows === 1 ? '' : 's'} · <button class="link" id="undoRepl">Deshacer</button>`;
-    $('#undoRepl').onclick = () => { if (!undoOut) return; S.out = undoOut; undoOut = null; renderTable(); updateFindCount(); saveProject(); toast('Reemplazo deshecho', 'ok', 2500); };
+    el.findCount.innerHTML = `${t('find.changes', { n, rows })} · <button class="link" id="undoRepl">${t('find.undo')}</button>`;
+    $('#undoRepl').onclick = () => { if (!undoOut) return; S.out = undoOut; undoOut = null; renderTable(); updateFindCount(); saveProject(); toast(t('find.undone'), 'ok', 2500); };
   });
 
   function highlight(text, re) {
@@ -1019,11 +1063,11 @@ stacking = apilamiento`;
       if (re && !countIn(re, s.text) && !countIn(re, S.out[i])) return;
       rows.push(`<tr id="r${i}" class="${S.st[i]}">
         <td class="num">${i + 1}<small>${s.start.slice(3, 8)}</small></td>
-        <td class="orig">${s.text ? highlight(s.text, re) : '<i class="muted">(vacío)</i>'}</td>
-        <td class="trad"><textarea data-i="${i}" aria-label="Traducción del subtítulo ${i + 1}" rows="${Math.max(1, (S.out[i] || s.text).split('\n').length)}" placeholder="${S.st[i] === 'error' ? 'No se pudo traducir' : 'Traducción…'}">${esc(S.out[i] || '')}</textarea></td>
-        <td class="act"><button class="icon" data-re="${i}" title="Volver a traducir este subtítulo" aria-label="Volver a traducir el subtítulo ${i + 1}">↻</button></td></tr>`);
+        <td class="orig">${s.text ? highlight(s.text, re) : `<i class="muted">${t('row.empty')}</i>`}</td>
+        <td class="trad"><textarea data-row="${i}" aria-label="${t('row.aria', { n: i + 1 })}" rows="${Math.max(1, (S.out[i] || s.text).split('\n').length)}" placeholder="${S.st[i] === 'error' ? t('row.phError') : t('row.ph')}">${esc(S.out[i] || '')}</textarea></td>
+        <td class="act"><button class="icon" data-re="${i}" title="${t('row.re')}" aria-label="${t('row.reAria', { n: i + 1 })}">↻</button></td></tr>`);
     });
-    el.table.innerHTML = rows.join('') || `<tr><td colspan="4" class="muted center">${re ? 'Ningún subtítulo coincide con la búsqueda' : 'Nada que mostrar'}</td></tr>`;
+    el.table.innerHTML = rows.join('') || `<tr><td colspan="4" class="muted center">${re ? t('table.noMatch') : t('table.nothing')}</td></tr>`;
   }
   function updateRow(i) {
     const tr = document.getElementById('r' + i);
@@ -1035,7 +1079,7 @@ stacking = apilamiento`;
   el.filter.addEventListener('change', renderTable);
   el.table.addEventListener('input', e => {
     const ta = e.target.closest('textarea'); if (!ta) return;
-    const i = +ta.dataset.i;
+    const i = +ta.dataset.row;
     S.out[i] = ta.value; S.st[i] = ta.value.trim() ? 'done' : 'pending';
     ta.closest('tr').className = S.st[i];
     ta.rows = Math.max(1, ta.value.split('\n').length);
@@ -1045,7 +1089,7 @@ stacking = apilamiento`;
   el.table.addEventListener('click', e => {
     const b = e.target.closest('[data-re]'); if (!b) return;
     const i = +b.dataset.re;
-    if (S.running) return toast('Espera a que termine la traducción en curso.', 'warn');
+    if (S.running) return toast(t('run.wait'), 'warn');
     S.out[i] = ''; S.st[i] = 'pending'; updateRow(i);
     start([i]);
   });
@@ -1073,12 +1117,13 @@ stacking = apilamiento`;
     if (S.running || !S.subs.length) return;
     const set = settings();
     const P = Api.PROVIDERS[set.provider];
-    if (P.key && !cfg.keys[set.provider]) { openKeys(); return toast(`Falta la clave de ${P.label}`, 'warn'); }
-    if (!set.model) return toast('Elige un modelo', 'warn');
-    if (S.src === S.tgt) return toast('El idioma original y el de destino son el mismo', 'warn');
+    if (P.key && !cfg.keys[set.provider]) { openKeys(); return toast(t('run.needKey', { label: P.label }), 'warn'); }
+    if (!set.model) return toast(t('run.chooseModel'), 'warn');
+    if (S.src === S.tgt) return toast(t('run.sameLang'), 'warn');
     indices = indices || S.st.map((x, i) => (x !== 'done' ? i : -1)).filter(i => i >= 0);
-    if (!indices.length) return toast('Ya está todo traducido. Usa ↻ en una fila para retraducirla.', 'ok');
+    if (!indices.length) return toast(t('run.allDone'), 'ok');
     S.running = true; S.ctrl = new AbortController();
+    pushRecent(S.tgt);
     updateUI();
     const t0 = performance.now();
     try {
@@ -1096,8 +1141,8 @@ stacking = apilamiento`;
       if (!S.ctrl.signal.aborted) {
         const errs = S.st.filter(x => x === 'error').length;
         const secs = Math.round((performance.now() - t0) / 1000);
-        if (indices.length > 1) toast(errs ? `Terminado con ${errs} subtítulo(s) sin traducir (en rojo).` : `¡Traducción completa en ${secs} s!`, errs ? 'warn' : 'ok', 8000);
-      } else toast('Traducción en pausa. Pulsa «Continuar» cuando quieras.', 'info', 4000);
+        if (indices.length > 1) toast(errs ? t('run.doneErr', { n: errs }) : t('run.done', { s: secs }), errs ? 'warn' : 'ok', 8000);
+      } else toast(t('run.paused'), 'info', 4000);
     } catch (e) {
       toast(e.message || String(e), 'error', 12000);
     } finally {
@@ -1127,7 +1172,7 @@ stacking = apilamiento`;
       return;
     }
     btn.dataset.label = btn.textContent;
-    btn.textContent = '¿Seguro? Pulsa otra vez';
+    btn.textContent = t('run.sure');
     btn.classList.add('armed');
     btn.dataset.armed = setTimeout(() => {
       delete btn.dataset.armed; btn.textContent = btn.dataset.label; btn.classList.remove('armed');
@@ -1138,7 +1183,7 @@ stacking = apilamiento`;
     S.out = S.subs.map(() => ''); S.st = S.subs.map(() => 'pending');
     S.usage = { in: 0, out: 0, cr: 0, cw: 0, cost: 0, req: 0 };
     renderTable(); updateUI(); saveProject();
-    toast('Traducción borrada. Elige otro modelo o cambia los ajustes y pulsa «Traducir».', 'ok', 5000);
+    toast(t('run.cleared'), 'ok', 5000);
   }));
   $('#resetAll').addEventListener('click', e => twoStep(e.currentTarget, () => {
     if (S.running) return;
@@ -1150,9 +1195,9 @@ stacking = apilamiento`;
     el.notes.value = ''; el.filter.value = 'all'; el.findText.value = ''; el.replText.value = ''; el.findCount.textContent = '';
     updateCtxSummary();
     document.body.classList.remove('loaded');
-    el.table.innerHTML = '<tr><td colspan="4" class="muted center">Aquí aparecerán tus subtítulos cuando cargues un archivo.</td></tr>';
+    el.table.innerHTML = `<tr><td colspan="4" class="muted center">${t('table.empty')}</td></tr>`;
     updateUI();
-    toast('Todo borrado. Carga un archivo nuevo para empezar.', 'ok', 4000);
+    toast(t('run.resetDone'), 'ok', 4000);
   }));
 
   // ---------- Exportar ----------
@@ -1164,10 +1209,10 @@ stacking = apilamiento`;
     const suffix = { es: 'es', en: 'en', 'zh-Hans': 'zh' }[S.tgt] || S.tgt;
     if (kind === 'srt') download(`${S.fileName}.${suffix}.srt`, Core.toSRT(S.subs, texts));
     if (kind === 'vtt') download(`${S.fileName}.${suffix}.vtt`, Core.toVTT(S.subs, texts));
-    if (kind === 'bi') download(`${S.fileName}.bilingue.srt`, Core.toSRT(S.subs, S.subs.map((s, i) => [S.out[i], s.text].filter(Boolean).join('\n'))));
-    if (kind === 'orig') download(`${S.fileName}.limpio.srt`, Core.toSRT(S.subs, S.subs.map(s => s.text)));
-    if (kind === 'project') download(`${S.fileName}.proyecto.json`, JSON.stringify(projectData()), 'application/json');
-    if (missing && kind !== 'project' && kind !== 'orig') toast(`Aviso: ${missing} subtítulo(s) sin traducir se han guardado en el idioma original.`, 'warn');
+    if (kind === 'bi') download(`${S.fileName}.${t('exp.biName')}.srt`, Core.toSRT(S.subs, S.subs.map((s, i) => [S.out[i], s.text].filter(Boolean).join('\n'))));
+    if (kind === 'orig') download(`${S.fileName}.${t('exp.cleanName')}.srt`, Core.toSRT(S.subs, S.subs.map(s => s.text)));
+    if (kind === 'project') download(`${S.fileName}.${t('exp.projectName')}.json`, JSON.stringify(projectData()), 'application/json');
+    if (missing && kind !== 'project' && kind !== 'orig') toast(t('exp.missing', { n: missing }), 'warn');
   });
   function download(name, text, type = 'text/plain') {
     const a = document.createElement('a');
@@ -1183,29 +1228,27 @@ stacking = apilamiento`;
     const err = S.st.filter(x => x === 'error').length;
     el.bar.style.width = `${(done / total) * 100}%`;
     el.bar.classList.toggle('err', err > 0);
-    el.progressText.textContent = S.subs.length ? `${done} de ${S.subs.length} traducidos${err ? ` · ${err} con error` : ''}` : '';
+    el.progressText.textContent = S.subs.length ? t('prog.text', { done, total: S.subs.length, err }) : '';
     const u = S.usage;
-    el.stats.textContent = u.req ? `${u.req} petici${u.req === 1 ? 'ón' : 'ones'} · ${fmt(u.in + u.cr + u.cw)} tokens de entrada (${fmt(u.cr)} en caché) · ${fmt(u.out)} de salida${u.cost ? ` · ≈ ${money(u.cost)}` : ''}` : '';
+    el.stats.textContent = u.req ? t('prog.stats', { req: u.req, inTok: fmt(u.in + u.cr + u.cw), cached: fmt(u.cr), outTok: fmt(u.out) }) + (u.cost ? ` · ≈ ${money(u.cost)}` : '') : '';
     el.retry.hidden = !err || S.running;
   }
 
   function updateUI() {
     const p = el.provider.value, P = Api.PROVIDERS[p];
     // temperatura
-    el.tempVal.textContent = (+el.temp.value).toFixed(1).replace('.', ',');
+    el.tempVal.textContent = num(+el.temp.value, 1);
     const tempOk = P.temp && currentModel()?.temp !== false;
     el.temp.disabled = !tempOk;
-    el.tempNote.textContent = tempOk
-      ? 'Más baja = más literal y fiel al original. 0,5 es un buen punto de partida.'
-      : 'Este modelo no permite ajustar la temperatura (les pasa a Claude y a GPT‑6): la fidelidad se controla con las instrucciones, que ya piden ceñirse al original.';
+    el.tempNote.textContent = tempOk ? t('temp.ok') : t('temp.no');
     // clave
     const needKey = P.key && !cfg.keys[p];
     el.keyWarn.hidden = !needKey;
-    el.keyWarn.innerHTML = needKey ? `Falta tu clave de ${P.label}. <button class="btn sm">Añadir clave</button> <a href="${P.keyUrl}" target="_blank" rel="noopener">¿Dónde la consigo?</a>` : '';
+    el.keyWarn.innerHTML = needKey ? t('key.missing', { label: P.label, url: P.keyUrl }) : '';
     // estimación
     const set = settings();
     el.full.disabled = !set.fullAllowed;
-    el.full.parentElement.title = set.fullAllowed ? '' : 'El archivo es demasiado largo para enviarlo entero a este modelo';
+    el.full.parentElement.title = set.fullAllowed ? '' : t('adv.tooLong');
     if (S.subs.length) {
       const pend = S.st.filter(x => x !== 'done').length;
       const batches = Math.ceil(pend / set.batchSize);
@@ -1214,19 +1257,20 @@ stacking = apilamiento`;
       const sys = 900 + (set.fullContext ? set.transcriptTokens : 0) + Core.estTokens(el.glossary.value + el.notes.value);
       const perBatchIn = avgSub * set.batchSize * 2.2 + 400;
       const outTok = pend * avgSub * 1.6 + batches * 300;
-      let line = pend ? `${pend} por traducir · ${batches} petici${batches === 1 ? 'ón' : 'ones'} de hasta ${set.batchSize} subtítulos` : 'Todo traducido';
+      let line = pend ? t('est.pending', { pend, batches, size: set.batchSize }) : t('est.allDone');
       if (pr && pend) {
         const cachedReads = set.fullContext ? Math.max(0, batches - 1) * sys : 0;
         const cost = ((set.fullContext ? sys : sys * batches) * pr.in + cachedReads * pr.cr + batches * perBatchIn * pr.in + outTok * pr.out) / 1e6;
-        line += ` · coste estimado ≈ ${money(cost)}`;
-      } else if (p === 'lmstudio' && pend) line += ' · gratis (en tu ordenador)';
-      if (set.fullContext) line += ' · con el guion completo como contexto';
+        line += ' · ' + t('est.cost', { cost: money(cost) });
+      } else if (p === 'lmstudio' && pend) line += ' · ' + t('est.free');
+      if (set.fullContext) line += ' · ' + t('est.full');
       el.estimate.textContent = line;
     } else el.estimate.textContent = '';
     // botones
     const started = S.st.some(x => x === 'done');
     el.start.disabled = S.running || !S.subs.length;
-    el.start.textContent = S.running ? 'Traduciendo…' : started && S.st.some(x => x !== 'done') ? 'Continuar' : 'Traducir';
+    el.start.textContent = S.running ? t('run.translating') : started && S.st.some(x => x !== 'done') ? t('run.continue') : t('run.translate');
+    $('#uiLang').disabled = S.running;
     el.stop.hidden = !S.running;
     el.exp.querySelectorAll('button').forEach(b => (b.disabled = !S.subs.length));
     $('#clearTrans').disabled = S.running || !S.st.some(x => x === 'done' || x === 'error');
@@ -1236,8 +1280,10 @@ stacking = apilamiento`;
     updateProgress();
   }
 
-  const fmt = n => n >= 1e6 ? (n / 1e6).toFixed(1).replace('.', ',') + ' M' : n >= 1e3 ? Math.round(n / 1e3) + ' mil' : String(n);
-  const money = c => c < 0.01 ? 'menos de 1 céntimo' : `${c.toFixed(c < 1 ? 3 : 2).replace('.', ',')} $`;
+  const locale = () => (UI === 'es' ? 'es-ES' : 'en-US');
+  const num = (n, d) => n.toLocaleString(locale(), { minimumFractionDigits: d, maximumFractionDigits: d });
+  const fmt = n => new Intl.NumberFormat(locale(), { notation: 'compact', maximumFractionDigits: 1 }).format(n);
+  const money = c => c < 0.01 ? t('num.lessCent') : new Intl.NumberFormat(locale(), { style: 'currency', currency: 'USD', maximumFractionDigits: c < 1 ? 3 : 2 }).format(c);
   function esc(s) { return String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
   window.addEventListener('beforeunload', e => { if (S.running) { e.preventDefault(); e.returnValue = ''; } });
@@ -1256,8 +1302,25 @@ stacking = apilamiento`;
   $('#helpClose').addEventListener('click', () => $('#helpDlg').close());
   $('#keysSave').addEventListener('click', () => { if (hasAnyKey()) hideWelcome(); });
 
+  // Selector de idioma: guarda el trabajo y recarga en el idioma elegido
+  const uiSel = $('#uiLang');
+  uiSel.value = UI;
+  uiSel.addEventListener('change', () => {
+    if (S.running) { uiSel.value = UI; return; }
+    store.set('uiLang', uiSel.value);
+    clearTimeout(saveT);
+    if (S.subs.length) { try { localStorage.setItem('ts2.project', JSON.stringify(projectData())); store.set('autoRestore', true); } catch { } }
+    location.href = location.pathname;
+  });
+
   $('#ver').textContent = 'v' + Core.VERSION;
   updateCtxSummary();
-  setTarget('es');
+  setTarget(Core.defaultTarget(el.src.value));
   loadModels();
+  // Tras cambiar de idioma, se recupera el trabajo sin preguntar
+  const pendingProject = store.get('project', null);
+  if (store.get('autoRestore', false)) {
+    store.del('autoRestore');
+    if (pendingProject?.subs?.length) { el.restore.hidden = true; restoreProject(pendingProject); }
+  }
 });

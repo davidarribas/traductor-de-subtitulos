@@ -6,8 +6,8 @@
   <title>Traductor de subtítulos</title>
   <meta name="description" content="Traduce subtítulos .srt y .vtt con IA (Claude, Gemini, GPT, DeepSeek o un modelo local). Gratis, en tu navegador y con tu propia clave.">
   <meta name="theme-color" content="#b84d1b">
-  <meta property="og:title" content="Traductor de subtítulos">
-  <meta property="og:description" content="Traduce subtítulos .srt y .vtt con IA, en tu navegador y con tu propia clave.">
+  <meta property="og:title" content="Traductor de subtítulos · Subtitle Translator">
+  <meta property="og:description" content="Traduce subtítulos .srt y .vtt con IA, en tu navegador y con tu propia clave. · Translate .srt and .vtt subtitles with AI, in your browser, with your own key.">
   <meta property="og:type" content="website">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23b84d1b'/><rect x='12' y='34' width='40' height='6' rx='3' fill='white'/><rect x='18' y='44' width='28' height='6' rx='3' fill='white' opacity='.75'/></svg>">
   <link rel="stylesheet" href="styles.css">
@@ -16,35 +16,39 @@
 <header class="top">
   <div class="brand">
     <span class="logo" aria-hidden="true"></span>
-    <h1>Traductor de subtítulos <span id="ver" class="ver"></span></h1>
+    <h1><span data-i="app.title">Traductor de subtítulos</span> <span id="ver" class="ver"></span></h1>
   </div>
   <nav class="topnav">
-    <button class="btn ghost" id="openHelp">Ayuda</button>
-    <button class="btn ghost" id="openKeys"><span aria-hidden="true">🔑</span> Claves de API</button>
+    <select id="uiLang" class="uilang" data-i-aria="app.uiLang">
+      <option value="es">ES</option>
+      <option value="en">EN</option>
+    </select>
+    <button class="btn ghost" id="openHelp" data-i="nav.help"></button>
+    <button class="btn ghost" id="openKeys" data-i="nav.keys"></button>
   </nav>
 </header>
 
 <main>
   <!-- Bienvenida (solo en la primera visita) -->
   <section class="card welcome" id="welcome" hidden>
-    <button class="icon close" id="welcomeClose" aria-label="Cerrar la bienvenida">✕</button>
-    <h2>Traduce tus subtítulos en tres pasos</h2>
+    <button class="icon close" id="welcomeClose" data-i-aria="welcome.close">✕</button>
+    <h2 data-i="welcome.title"></h2>
     <ol class="steps">
-      <li><b>Consigue una clave de API.</b> Es como una contraseña para usar la IA y se paga por uso: traducir un vídeo de 20 minutos suele costar céntimos. Si no sabes cuál elegir, empieza por <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">OpenRouter</a>, que da acceso a muchos modelos con una sola clave.
-        <button class="btn sm primary" id="welcomeKeys">Añadir mi clave</button></li>
-      <li><b>Arrastra tu archivo .srt o .vtt.</b> La app detecta el idioma y propone el de destino.</li>
-      <li><b>Pulsa «Traducir»,</b> revisa las líneas que quieras y descarga el resultado.</li>
+      <li><span data-i="welcome.step1"></span>
+        <button class="btn sm primary" id="welcomeKeys" data-i="welcome.addKey"></button></li>
+      <li data-i="welcome.step2"></li>
+      <li data-i="welcome.step3"></li>
     </ol>
-    <p class="muted small">¿Prefieres no pagar nada? Usa un modelo en tu propio ordenador con <a href="https://lmstudio.ai" target="_blank" rel="noopener">LM Studio</a>. Tus subtítulos no salen de tu equipo.</p>
+    <p class="muted small" data-i="welcome.free"></p>
   </section>
 
   <!-- 1. Archivo -->
   <section class="card" id="stepFile">
-    <h2><span class="n">1</span> Subtítulos</h2>
+    <h2><span class="n">1</span> <span data-i="file.title"></span></h2>
     <div id="restore" class="banner" hidden></div>
-    <div id="drop" class="drop" tabindex="0" role="button" aria-label="Elegir archivo de subtítulos">
-      <strong>Arrastra aquí un archivo .srt o .vtt</strong>
-      <span>o haz clic para elegirlo · también puedes abrir un proyecto guardado (.json)</span>
+    <div id="drop" class="drop" tabindex="0" role="button" data-i-aria="file.dropAria">
+      <strong data-i="file.dropTitle"></strong>
+      <span data-i="file.dropSub"></span>
       <input type="file" id="file" accept=".srt,.vtt,.json,.wrk" hidden>
     </div>
     <p id="fileInfo" class="fileinfo" hidden></p>
@@ -53,71 +57,70 @@
 
   <!-- 2. Ajustes -->
   <section class="card" id="stepSettings">
-    <h2><span class="n">2</span> Traducción</h2>
+    <h2><span class="n">2</span> <span data-i="settings.title"></span></h2>
 
     <div class="row langs">
-      <label>Idioma original
+      <label><span data-i="settings.src"></span>
         <select id="src"></select>
       </label>
       <span class="arrow">→</span>
-      <label>Traducir a
+      <label><span data-i="settings.tgt"></span>
         <select id="tgt"></select>
       </label>
-      <div class="chips" id="tgtChips" role="group" aria-label="Destinos rápidos">
-        <button type="button" data-lang="es">Español</button>
-        <button type="button" data-lang="en">Inglés</button>
-        <button type="button" data-lang="zh-Hans">中文 简体</button>
+      <div class="chips" id="tgtChips" role="group" data-i-aria="settings.recent" hidden>
+        <span class="muted small" data-i="settings.recent"></span>
+        <span id="chipList"></span>
       </div>
     </div>
 
     <div class="row">
-      <label>Motor
+      <label><span data-i="settings.engine"></span>
         <select id="provider"></select>
       </label>
-      <label class="grow">Modelo
+      <label class="grow"><span data-i="settings.model"></span>
         <span class="inline">
           <select id="model"></select>
-          <button class="icon" id="reloadModels" title="Actualizar la lista de modelos" aria-label="Actualizar la lista de modelos">↻</button>
+          <button class="icon" id="reloadModels" data-i-title="settings.reload" data-i-aria="settings.reload">↻</button>
         </span>
       </label>
-      <label class="check small"><input type="checkbox" id="showAll"> Ver todos los modelos</label>
+      <label class="check small"><input type="checkbox" id="showAll"> <span data-i="settings.showAll"></span></label>
     </div>
     <p id="keyWarn" class="warn" hidden></p>
 
     <div class="row">
-      <label class="grow">Fidelidad (temperatura) <b id="tempVal">0,5</b>
+      <label class="grow"><span data-i="settings.fidelity"></span> <b id="tempVal">0,5</b>
         <input type="range" id="temp" min="0" max="1" step="0.1" value="0.5">
-        <span class="scale"><span>Literal</span><span>Libre</span></span>
+        <span class="scale"><span data-i="settings.literal"></span><span data-i="settings.free"></span></span>
         <small id="tempNote" class="muted"></small>
       </label>
     </div>
 
     <details class="ctx" id="ctxBox">
-      <summary><b>Contexto y glosario</b> <span class="muted small" id="ctxSummary">opcional, pero mejora mucho el resultado</span></summary>
+      <summary><b data-i="ctx.title"></b> <span class="muted small" id="ctxSummary"></span></summary>
       <div class="row two">
-      <label>Sobre el vídeo <small class="muted">(opcional, ayuda mucho)</small>
-        <textarea id="notes" rows="4" placeholder="Ej.: Vídeo de wargames. Reseña de «Men of Iron» de GMT. Hablan dos personas en tono informal; tutea al espectador."></textarea>
+      <label><span><span data-i="ctx.notes"></span> <small class="muted" data-i="ctx.notesHint"></small></span>
+        <textarea id="notes" rows="4" data-i-ph="ctx.notesPh"></textarea>
       </label>
-      <label>Glosario <small class="muted">(un término por línea: original = traducción)</small>
-        <textarea id="glossary" rows="4" placeholder="counter = ficha&#10;hex = hexágono"></textarea>
-        <button type="button" class="link" id="sampleGloss">+ Añadir glosario de ejemplo de wargames</button>
+      <label><span><span data-i="ctx.gloss"></span> <small class="muted" data-i="ctx.glossHint"></small></span>
+        <textarea id="glossary" rows="4" data-i-ph="ctx.glossPh"></textarea>
+        <button type="button" class="link" id="sampleGloss" data-i="ctx.sample"></button>
       </label>
     </div>
 
     </details>
 
     <details class="adv">
-      <summary>Opciones avanzadas</summary>
+      <summary data-i="adv.title"></summary>
       <div class="row">
-        <label>Subtítulos por petición
+        <label><span data-i="adv.batch"></span>
           <select id="batch">
             <option value="20">20</option>
-            <option value="40" selected>40 (recomendado)</option>
+            <option value="40" selected id="batchRec">40</option>
             <option value="60">60</option>
             <option value="100">100</option>
           </select>
         </label>
-        <label>Peticiones a la vez
+        <label><span data-i="adv.conc"></span>
           <select id="conc">
             <option value="1">1</option>
             <option value="2">2</option>
@@ -125,11 +128,11 @@
             <option value="4">4</option>
           </select>
         </label>
-        <label>Caracteres por línea
+        <label><span data-i="adv.chars"></span>
           <input type="number" id="maxChars" min="10" max="80" placeholder="42">
         </label>
         <label class="check"><input type="checkbox" id="fullCtx" checked>
-          <span>Enviar el guion completo como contexto<br><small class="muted">El modelo ve todo el vídeo y traduce con más coherencia. Con Claude, Gemini y GPT se reutiliza en caché y apenas cuesta más.</small></span>
+          <span><span data-i="adv.full"></span><br><small class="muted" data-i="adv.fullHint"></small></span>
         </label>
       </div>
     </details>
@@ -138,17 +141,17 @@
   <!-- 3. Traducir -->
   <section class="card sticky" id="stepRun">
     <div class="runbar">
-      <button class="btn primary" id="start" disabled>Traducir</button>
-      <button class="btn" id="stop" hidden>Pausar</button>
-      <button class="btn warnbtn" id="retryErrors" hidden>Reintentar los fallidos</button>
+      <button class="btn primary" id="start" disabled data-i="run.translate"></button>
+      <button class="btn" id="stop" hidden data-i="run.pause"></button>
+      <button class="btn warnbtn" id="retryErrors" hidden data-i="run.retry"></button>
       <div class="progress">
         <div class="track"><div class="bar" id="bar"></div></div>
         <div class="ptext"><span id="progressText"></span> <span id="estimate" class="muted"></span></div>
         <div id="stats" class="muted small"></div>
       </div>
       <div class="resets">
-        <button class="btn sm ghost" id="clearTrans" disabled title="Borra las traducciones y deja el archivo cargado, para probar con otro modelo">Borrar traducción</button>
-        <button class="btn sm ghost danger" id="resetAll" disabled title="Quita el archivo, la traducción y el trabajo guardado">Empezar de cero</button>
+        <button class="btn sm ghost" id="clearTrans" disabled data-i-title="run.clearTitle" data-i="run.clear"></button>
+        <button class="btn sm ghost danger" id="resetAll" disabled data-i-title="run.resetTitle" data-i="run.reset"></button>
       </div>
     </div>
   </section>
@@ -156,96 +159,87 @@
   <!-- 4. Tabla -->
   <section class="card" id="stepTable">
     <div class="tablehead">
-      <h2><span class="n">3</span> Revisa y descarga</h2>
+      <h2><span class="n">3</span> <span data-i="table.title"></span></h2>
       <select id="filter">
-        <option value="all">Todos</option>
-        <option value="pending">Sin traducir</option>
-        <option value="error">Con error</option>
+        <option value="all" data-i="table.all"></option>
+        <option value="pending" data-i="table.pending"></option>
+        <option value="error" data-i="table.error"></option>
       </select>
     </div>
     <div class="findbar" id="findBar">
-      <input type="search" id="findText" placeholder="Buscar en el original o la traducción…" aria-label="Buscar">
-      <input type="text" id="replText" placeholder="Reemplazar por…" aria-label="Reemplazar por">
-      <label class="check small"><input type="checkbox" id="findCase"> Mayúsculas</label>
-      <label class="check small"><input type="checkbox" id="findWord" checked> Palabra entera</label>
-      <button class="btn sm" id="replBtn" disabled>Reemplazar en las traducciones</button>
+      <input type="search" id="findText" data-i-ph="find.ph" data-i-aria="find.aria">
+      <input type="text" id="replText" data-i-ph="find.replPh" data-i-aria="find.replPh">
+      <label class="check small"><input type="checkbox" id="findCase"> <span data-i="find.case"></span></label>
+      <label class="check small"><input type="checkbox" id="findWord" checked> <span data-i="find.word"></span></label>
+      <button class="btn sm" id="replBtn" disabled data-i="find.repl"></button>
       <span id="findCount" class="muted small" aria-live="polite"></span>
     </div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>#</th><th>Original</th><th>Traducción <small class="muted">(editable)</small></th><th></th></tr></thead>
-        <tbody id="rows"><tr><td colspan="4" class="muted center">Aquí aparecerán tus subtítulos cuando cargues un archivo.</td></tr></tbody>
+        <thead><tr><th>#</th><th data-i="table.orig"></th><th data-i="table.trans"></th><th></th></tr></thead>
+        <tbody id="rows"><tr><td colspan="4" class="muted center" data-i="table.empty"></td></tr></tbody>
       </table>
     </div>
     <div class="exportbar" id="exportBar">
-      <button class="btn primary" data-exp="srt" disabled>Descargar .srt</button>
+      <button class="btn primary" data-exp="srt" disabled data-i="exp.srt"></button>
       <button class="btn" data-exp="vtt" disabled>.vtt</button>
-      <button class="btn" data-exp="bi" disabled title="Traducción y original en el mismo subtítulo">Bilingüe .srt</button>
-      <button class="btn" data-exp="orig" disabled title="El original sin etiquetas de hablante">Original limpio .srt</button>
+      <button class="btn" data-exp="bi" disabled data-i-title="exp.biTitle" data-i="exp.bi"></button>
+      <button class="btn" data-exp="orig" disabled data-i-title="exp.origTitle" data-i="exp.orig"></button>
       <span class="spacer"></span>
-      <button class="btn ghost" data-exp="project" disabled title="Para seguir otro día o en otro ordenador">Guardar proyecto</button>
+      <button class="btn ghost" data-exp="project" disabled data-i-title="exp.projectTitle" data-i="exp.project"></button>
     </div>
   </section>
 </main>
 
 <footer>
-  <p>Tus claves y tus subtítulos solo viajan de tu navegador al proveedor que elijas. Esta página no tiene servidor propio.</p>
-  <p>Basado en <a href="https://github.com/TTomas65/Subtitle-Translator-for-LM-Studio" target="_blank" rel="noopener">Subtitle Translator</a> de TTomas65 · licencia MIT.</p>
+  <p data-i="footer.privacy"></p>
+  <p data-i="footer.based"></p>
 </footer>
 
 <dialog id="helpDlg">
   <div class="help">
-    <h2>Cómo funciona</h2>
-    <h3>Qué hace</h3>
-    <p>Envía tus subtítulos por lotes a la IA que elijas, junto con el guion completo del vídeo como contexto, para que la traducción sea coherente de principio a fin. Cada subtítulo conserva sus tiempos y sus saltos de línea.</p>
-    <h3>Cuánto cuesta</h3>
-    <p>La app es gratis. Lo que pagas es el uso de la IA, directamente al proveedor y con tu clave. Antes de empezar verás una estimación, y durante la traducción, el gasto real. Como referencia, un vídeo de 20 minutos cuesta menos de un céntimo con Claude Haiku o DeepSeek, unos 5 céntimos con Gemini Flash y unos 10-20 céntimos con Claude Sonnet. Con LM Studio es gratis.</p>
-    <h3>Qué modelo elegir</h3>
-    <ul>
-      <li><b>Calidad y naturalidad:</b> Claude Sonnet o Gemini (gama alta).</li>
-      <li><b>Rápido y barato:</b> Gemini Flash, Claude Haiku o DeepSeek.</li>
-      <li><b>Al chino:</b> Qwen Max o Gemini.</li>
-      <li><b>Sin conexión y gratis:</b> LM Studio con Qwen o Gemma.</li>
-    </ul>
-    <h3>Privacidad</h3>
-    <p>Esta página no tiene servidor propio, ni registro, ni analítica. Tus claves se guardan solo en este navegador. Los subtítulos viajan directamente de tu navegador al proveedor elegido (Anthropic, OpenRouter, OpenAI) o se quedan en tu ordenador si usas LM Studio.</p>
-    <h3>Consejos</h3>
-    <ul>
-      <li>Describe el vídeo en «Contexto y glosario»: quién habla, de qué trata y en qué tono.</li>
-      <li>Pon en el glosario los términos y las siglas que deban traducirse siempre igual.</li>
-      <li>Si no te gusta el resultado, pulsa «Borrar traducción» y prueba con otro modelo.</li>
-      <li>El botón ↻ de cada fila vuelve a traducir solo esa línea.</li>
-    </ul>
-    <div class="actions"><button class="btn primary" id="helpClose">Entendido</button></div>
+    <h2 data-i="help.title"></h2>
+    <h3 data-i="help.whatH"></h3>
+    <p data-i="help.whatP"></p>
+    <h3 data-i="help.costH"></h3>
+    <p data-i="help.costP"></p>
+    <h3 data-i="help.modelH"></h3>
+    <ul data-i="help.modelList"></ul>
+    <h3 data-i="help.privH"></h3>
+    <p data-i="help.privP"></p>
+    <h3 data-i="help.tipsH"></h3>
+    <ul data-i="help.tipsList"></ul>
+    <div class="actions"><button class="btn primary" id="helpClose" data-i="help.ok"></button></div>
   </div>
 </dialog>
 
 <dialog id="keysDlg">
   <form method="dialog" class="keys">
-    <h2>Claves de API</h2>
-    <p class="muted">Solo necesitas la del motor que vayas a usar. Se guardan en este navegador y no se envían a ningún otro sitio.</p>
-    <label>Claude (Anthropic) <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">conseguir</a>
-      <span class="inline"><input type="password" id="kAnthropic" placeholder="sk-ant-…" autocomplete="off"><button type="button" class="icon" data-eye="kAnthropic">👁</button></span>
+    <h2 data-i="keys.title"></h2>
+    <p class="muted" data-i="keys.intro"></p>
+    <label>Claude (Anthropic) <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" data-i="keys.get"></a>
+      <span class="inline"><input type="password" id="kAnthropic" placeholder="sk-ant-…" autocomplete="off"><button type="button" class="icon" data-eye="kAnthropic" data-i-aria="keys.show">👁</button></span>
     </label>
-    <label>OpenRouter <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">conseguir</a>
-      <span class="inline"><input type="password" id="kOpenrouter" placeholder="sk-or-…" autocomplete="off"><button type="button" class="icon" data-eye="kOpenrouter">👁</button></span>
+    <label>OpenRouter <a href="https://openrouter.ai/keys" target="_blank" rel="noopener" data-i="keys.get"></a>
+      <span class="inline"><input type="password" id="kOpenrouter" placeholder="sk-or-…" autocomplete="off"><button type="button" class="icon" data-eye="kOpenrouter" data-i-aria="keys.show">👁</button></span>
     </label>
-    <label>OpenAI <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">conseguir</a>
-      <span class="inline"><input type="password" id="kOpenai" placeholder="sk-…" autocomplete="off"><button type="button" class="icon" data-eye="kOpenai">👁</button></span>
+    <label>OpenAI <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" data-i="keys.get"></a>
+      <span class="inline"><input type="password" id="kOpenai" placeholder="sk-…" autocomplete="off"><button type="button" class="icon" data-eye="kOpenai" data-i-aria="keys.show">👁</button></span>
     </label>
-    <label>Dirección de LM Studio
+    <label><span data-i="keys.lm"></span>
       <input type="text" id="kLm" placeholder="http://127.0.0.1:1234">
-      <small class="muted">En LM Studio: pestaña Developer → arranca el servidor y activa «Enable CORS».</small>
+      <small class="muted" data-i="keys.lmHint"></small>
     </label>
-    <label class="check"><input type="checkbox" id="kRemember" checked> Recordar las claves en este navegador</label>
+    <label class="check"><input type="checkbox" id="kRemember" checked> <span data-i="keys.remember"></span></label>
     <div class="actions">
-      <button class="btn ghost" id="keysCancel">Cancelar</button>
-      <button class="btn primary" id="keysSave">Guardar</button>
+      <button class="btn ghost" id="keysCancel" data-i="keys.cancel"></button>
+      <button class="btn primary" id="keysSave" data-i="keys.save"></button>
     </div>
   </form>
 </dialog>
 
 <div id="toasts" aria-live="polite"></div>
+<script src="i18n.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

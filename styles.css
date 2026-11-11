@@ -204,3 +204,8 @@ mark { background: #ffe28a; color: inherit; border-radius: 3px; padding: 0 1px; 
 .logo { flex: none; }
 body:not(.loaded) .findbar { display: none; }
 @media (max-width: 700px) { .topnav .btn { padding: .45rem .7rem; font-size: .9rem; } }
+
+/* ---------- Idioma y destinos recientes ---------- */
+.uilang { width: auto; padding: .45rem .5rem; font-weight: 600; font-size: .85rem; background: transparent; }
+.chips { align-items: center; flex-wrap: wrap; }
+.chips #chipList { display: contents; }
